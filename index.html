@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Roletas de Personagem</title>
+<style>
+  body {
+    background: #330000;
+    color: #f3d1c1;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 20px;
+  }
+
+  .roleta-container {
+    background: #660000;
+    border: 2px solid #cc3333;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 30px;
+    width: 320px;
+    position: relative; /* pra seta absoluta */
+    box-shadow: 0 0 15px #cc4444;
+  }
+
+  h2 {
+    margin: 0 0 8px 0;
+    font-weight: 700;
+    color: #ffa07a;
+  }
+
+  textarea {
+    width: 100%;
+    height: 60px;
+    resize: vertical;
+    background: #440000;
+    border: 1px solid #cc4444;
+    color: #f3d1c1;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  canvas {
+    display: block;
+    margin: 15px auto;
+    background: #440000;
+    border-radius: 50%;
+    border: 3px solid #cc3333;
+    box-shadow: inset 0 0 15px #cc4444;
+  }
+
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    user-select: none;
+  }
+
+  .checkbox-container input[type="checkbox"] {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  button {
+    background-color: #cc3333;
+    border: none;
+    padding: 10px 20px;
+    color: #fff3f0;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.25s;
+    box-shadow: 0 0 10px #cc5555;
+  }
+  button:hover {
+    background-color: #ff6666;
+  }
+
+  .result {
+    margin-top: 12px;
+    font-weight: 700;
+    font-size: 18px;
+    color: #ffbb99;
+    min-height: 24px;
+    text-align: center;
+  }
+
+  /* Seta preta estilizada na borda direita da roleta */
+  .seta-indicadora {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    border-right: 30px solid black; /* ponta preta */
+    filter: drop-shadow(2px 0 1px white); /* contorno branco tipo sombra */
+    top: 50%;
+    right: -1px; /* um pouco pra fora da borda direita */
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 10;
+    transition: transform 0.5s ease-out;
+  }
+</style>
+</head>
+<body>
+
+<div id="roletas"></div>
+
+<script>
+  // Dados iniciais com opções para cada roleta
+  const dados = [
+    {
+      titulo: 'Roleta de lado',
+      opcoes: [
+        'Pirata', 'Marinheiro', 'Revolucionário', 'Caçador de Recompensas', 'Civil', 'Tenryuubito',
+        'Cipher Pol', 'Ex-marinheiro', 'Yonkou', 'Shichibukai', 'Almirante', 'Ex-Almirante',
+        'Samurai', 'Capitão pirata', 'Imperador/Imperatriz'
+      ]
+    },
+    {
+      titulo: 'Poderes',
+      opcoes: ['Akuma no Mi', 'Haki', 'Magia', 'Haki + Magia', 'Haki + Akuma no Mi', 'Akuma no Mi + Magia', 'Todos']
+    },
+    {
+      titulo: 'Classe',
+      opcoes: [
+        'Espadachim', 'Porradeiro', 'Artilheiro', 'Carpinteiro', 'Navegador', 'Médico',
+        'Cozinheiro', 'Cartógrafo', 'Arqueólogo', 'Músico', 'Cartomante', 'Assassino',
+        'Ladrão', 'Engenheiro', 'Diplomata'
+      ]
+    },
+    {
+      titulo: 'Akuma no Mi',
+      opcoes: [
+        'Hito Hito no Mi: Modelo Nika',
+        'Bara Bara no Mi',
+        'Sube Sube no Mi',
+        'Bomu Bomu no Mi',
+        'Suna Suna no Mi',
+        'Magu Magu no Mi',
+        'Goro Goro no Mi',
+        'Yami Yami no Mi',
+        'Mera Mera no Mi',
+        'Doku Doku no Mi',
+        'Hie Hie no Mi',
+        'Tori Tori no Mi: Modelo Fênix',
+        'Nikyu Nikyu no Mi',
+        'Noro Noro no Mi',
+        'Gomu Gomu no Mi',
+        'Ito Ito no Mi',
+        'Kilo Kilo no Mi',
+        'Mochi Mochi no Mi',
+        'Awa Awa no Mi',
+        'Baku Baku no Mi',
+        'Ushi Ushi no Mi: Modelo Búfalo',
+        'Ryu Ryu no Mi: Modelo Dragão',
+        'Zoan Ancestral',
+        'Inu Inu no Mi: Modelo Lobo',
+        'Inu Inu no Mi: Modelo Kyubi no Kitsune',
+        'Hebi Hebi no Mi: Modelo Yamata no Orochi',
+        'Tatsu Tatsu no Mi: Modelo Dragão Asiático',
+        'Ryu Ryu no Mi: Modelo Spinosaurus',
+        'Ryu Ryu no Mi: Modelo Pteranodon',
+        'Uma Uma no Mi: Modelo Cavalo',
+        'Hito Hito no Mi',
+        'Mogu Mogu no Mi',
+        'Suke Suke no Mi',
+        'Yuki Yuki no Mi',
+        'Neko Neko no Mi: Modelo Leopardo',
+        'Neko Neko no Mi: Modelo Guepardo',
+        'Hebi Hebi no Mi: Modelo Cobra',
+        'Mera Mera no Mi: Modelo Dragão',
+        'Pika Pika no Mi',
+        'Kilo Kilo no Mi: Modelo Elefante',
+        'Baku Baku no Mi: Modelo Urso',
+        'Hie Hie no Mi: Modelo Tigre',
+        'Doku Doku no Mi: Modelo Serpente',
+        'Gura Gura no Mi',
+        'Nika Nika no Mi',
+        'Riku Riku no Mi: Modelo Elefante',
+        'Hito Hito no Mi: Modelo Antropomórfico',
+        'Sabi Sabi no Mi',
+        'Toge Toge no Mi',
+        'Mera Mera no Mi: Modelo Fênix',
+        'Ushi Ushi no Mi: Modelo Bisão',
+        'Kuma Kuma no Mi',
+        'Soru Soru no Mi',
+        'Goe Goe no Mi',
+        'Bomu Bomu no Mi: Modelo Bomba',
+        'Yuki Yuki no Mi: Modelo Pinguim',
+        'Doku Doku no Mi: Modelo Escorpião',
+        'Suke Suke no Mi: Modelo Fantasma',
+        'Kira Kira no Mi',
+        'Mogu Mogu no Mi: Modelo Toupeira',
+        'Pika Pika no Mi: Modelo Relâmpago',
+        'Awa Awa no Mi: Modelo Bolha',
+        'Bari Bari no Mi',
+        'Mera Mera no Mi: Modelo Chama Azul',
+        'Bomu Bomu no Mi: Modelo C4',
+        'Mogu Mogu no Mi: Modelo Toupeira Gigante',
+        'Kumo Kumo no Mi: Modelo Aranha',
+        'Neko Neko no Mi: Modelo Gato Preto',
+        'Baku Baku no Mi: Modelo Porco',
+        'Sabi Sabi no Mi: Modelo Ferrugem',
+        'Toge Toge no Mi: Modelo Espinhos',
+        'Gomu Gomu no Mi: Modelo Borracha',
+        'Doku Doku no Mi: Modelo Vírus',
+        'Goro Goro no Mi: Modelo Relâmpago',
+        'Yami Yami no Mi: Modelo Escuridão',
+        'Hie Hie no Mi: Modelo Gelo',
+        'Bomu Bomu no Mi: Modelo Mina',
+        'Soru Soru no Mi: Modelo Alma',
+        'Mera Mera no Mi: Modelo Fogo',
+        'Nikyu Nikyu no Mi: Modelo Patas',
+        'Kilo Kilo no Mi: Modelo Peso',
+        'Mochi Mochi no Mi: Modelo Massinha',
+        'Gura Gura no Mi: Modelo Terremoto',
+        'Ito Ito no Mi: Modelo Fio',
+        'Nika Nika no Mi: Modelo Sol',
+        'Ryu Ryu no Mi: Modelo Dragão Ancestral',
+        'Zoan Ancestral: Modelo Tigre',
+        'Hebi Hebi no Mi: Modelo Dragão',
+        'Tatsu Tatsu no Mi: Modelo Dragão Oriental',
+        'Inu Inu no Mi: Modelo Cão',
+        'Ushi Ushi no Mi: Modelo Touro',
+        'Uma Uma no Mi: Modelo Cavalo Selvagem',
+        'Kuma Kuma no Mi: Modelo Urso Polar',
+        'Soru Soru no Mi: Modelo Alma Assassina',
+        'Bari Bari no Mi: Modelo Armadura',
+        'Mera Mera no Mi: Modelo Dragão de Fogo',
+        'Pika Pika no Mi: Modelo Luz',
+        'Kumo Kumo no Mi: Modelo Nuvem',
+        'Toge Toge no Mi: Modelo Cacto',
+        'Sabi Sabi no Mi: Modelo Ferrugem Antiga',
+        'Yuki Yuki no Mi: Modelo Neve',
+        'Doku Doku no Mi: Modelo Veneno',
+        'Mogu Mogu no Mi: Modelo Toupeira Normal',
+        'Kira Kira no Mi: Modelo Cristal',
+        'Suke Suke no Mi: Modelo Invisibilidade',
+        'Awa Awa no Mi: Modelo Bolha Gigante',
+        'Bomu Bomu no Mi: Modelo Bomba Poderosa',
+        'Kumo Kumo no Mi: Modelo Aranha Gigante',
+        'Neko Neko no Mi: Modelo Leopardo Negro',
+        'Hito Hito no Mi: Modelo Humanoide',
+        'Hebi Hebi no Mi: Modelo Cobra Real',
+        'Ryu Ryu no Mi: Modelo Dragão Vermelho',
+        'Tatsu Tatsu no Mi: Modelo Dragão Branco',
+        'Inu Inu no Mi: Modelo Lobo Cinzento',
+        'Ushi Ushi no Mi: Modelo Búfalo Selvagem',
+        'Uma Uma no Mi: Modelo Cavalo Marinho',
+        'Kuma Kuma no Mi: Modelo Urso Gigante',
+        'Soru Soru no Mi: Modelo Espírito',
+        'Bari Bari no Mi: Modelo Armadura de Ferro',
+        'Mera Mera no Mi: Modelo Fogo Azul',
+        'Pika Pika no Mi: Modelo Raio',
+        'Kumo Kumo no Mi: Modelo Nuvem Negra',
+        'Toge Toge no Mi: Modelo Cacto Espinhoso',
+        'Sabi Sabi no Mi: Modelo Ferrugem Venenosa',
+        'Yuki Yuki no Mi: Modelo Tempestade de Neve',
+        'Doku Doku no Mi: Modelo Veneno Mortal',
+        'Mogu Mogu no Mi: Modelo Toupeira Gigante',
+        'Kira Kira no Mi: Modelo Diamante',
+        'Suke Suke no Mi: Modelo Fantasma Invisível',
+        'Awa Awa no Mi: Modelo Bolha de Sabão',
+        'Bomu Bomu no Mi: Modelo Explosão',
+        'Kumo Kumo no Mi: Modelo Aranha Venenosa',
+        'Neko Neko no Mi: Modelo Gato Selvagem',
+        'Hito Hito no Mi: Modelo Humano Supremo',
+        'Hebi Hebi no Mi: Modelo Dragão Ancestral',
+        'Ryu Ryu no Mi: Modelo Dragão Espacial',
+        'Tatsu Tatsu no Mi: Modelo Dragão Celestial',
+        'Inu Inu no Mi: Modelo Cão Selvagem',
+        'Ushi Ushi no Mi: Modelo Touro Selvagem',
+        'Uma Uma no Mi: Modelo Cavalo Branco',
+        'Kuma Kuma no Mi: Modelo Urso Marrom',
+        'Soru Soru no Mi: Modelo Alma Negra',
+        'Bari Bari no Mi: Modelo Armadura Poderosa',
+        'Mera Mera no Mi: Modelo Fogo Selvagem',
+        'Pika Pika no Mi: Modelo Luz Estelar',
+        'Kumo Kumo no Mi: Modelo Nuvem de Tempestade',
+        'Toge Toge no Mi: Modelo Cacto Gigante',
+        'Sabi Sabi no Mi: Modelo Ferrugem Antiga',
+        'Yuki Yuki no Mi: Modelo Nevasca',
+        'Doku Doku no Mi: Modelo Veneno Extremo',
+        'Mogu Mogu no Mi: Modelo Toupeira Veloz',
+        'Kira Kira no Mi: Modelo Cristal Radiante',
+        'Suke Suke no Mi: Modelo Invisibilidade Total',
+        'Awa Awa no Mi: Modelo Bolha Gigante',
+        'Bomu Bomu no Mi: Modelo Bomba Final',
+        'Kumo Kumo no Mi: Modelo Aranha Sombria',
+        'Neko Neko no Mi: Modelo Leopardo Selvagem',
+        'Hito Hito no Mi: Modelo Divino',
+        'Hebi Hebi no Mi: Modelo Dragão de Ouro',
+        'Ryu Ryu no Mi: Modelo Dragão Negro',
+        'Tatsu Tatsu no Mi: Modelo Dragão do Trovão',
+        'Inu Inu no Mi: Modelo Lobo Branco',
+        'Ushi Ushi no Mi: Modelo Búfalo Negro',
+        'Uma Uma no Mi: Modelo Cavalo Negro',
+        'Kuma Kuma no Mi: Modelo Urso Polar Gigante',
+        'Soru Soru no Mi: Modelo Alma Branca',
+        'Bari Bari no Mi: Modelo Armadura Final',
+        'Mera Mera no Mi: Modelo Fogo Final',
+        'Pika Pika no Mi: Modelo Luz Final',
+        'Kumo Kumo no Mi: Modelo Nuvem Final',
+        'Toge Toge no Mi: Modelo Cacto Final',
+        'Sabi Sabi no Mi: Modelo Ferrugem Final',
+        'Yuki Yuki no Mi: Modelo Neve Final',
+        'Doku Doku no Mi: Modelo Veneno Final',
+        'Mogu Mogu no Mi: Modelo Toupeira Final',
+        'Kira Kira no Mi: Modelo Cristal Final',
+        'Suke Suke no Mi: Modelo Invisibilidade Final',
+        'Awa Awa no Mi: Modelo Bolha Final',
+        'Bomu Bomu no Mi: Modelo Bomba Final',
+        'Kumo Kumo no Mi: Modelo Aranha Final',
+        'Neko Neko no Mi: Modelo Gato Final'
+      ]
+    },
+    {
+      titulo: 'Hakis',
+      opcoes: [
+        'Observação',
+        'Armamento',
+        'Rei',
+        'Observação + Armamento',
+        'Observação + Rei',
+        'Armamento + Rei',
+        'Observação + Armamento + Rei'
+      ]
+    },
+    {
+      titulo: 'Raça',
+      opcoes: [
+        'Humano',
+        'Lunariano',
+        'Homem-Peixe',
+        'Tritão',
+        'Gigante',
+        'Mink',
+        'Skypiean',
+        'Anão',
+        'Ciborgue',
+        'Semi-ciborgue',
+        'Meio-lunariano',
+        'Robô',
+        'Braços longos',
+        'Pernas longas'
+      ]
+    }
+  ];
+
+  // Estado das opções já usadas para exclusão
+  const opcoesUsadas = dados.map(() => new Set());
+
+  const roletasDiv = document.getElementById('roletas');
+
+  function criarRoleta(item, index) {
+    const container = document.createElement('div');
+    container.className = 'roleta-container';
+    container.style.position = 'relative';
+
+    const titulo = document.createElement('h2');
+    titulo.textContent = item.titulo;
+
+    const textarea = document.createElement('textarea');
+    textarea.value = item.opcoes.join('\n');
+    textarea.oninput = () => {
+      item.opcoes = textarea.value.split('\n').map(x => x.trim()).filter(x => x.length > 0);
+      opcoesUsadas[index] = new Set(); // reseta exclusão quando muda lista
+      angulos[index] = 0;
+      rodando[index] = false;
+      desenharRoleta(index, item.opcoes, angulos[index]);
+      document.getElementById('resultado-' + index).innerText = '';
+    };
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 300;
+    canvas.height = 300;
+    canvas.id = 'canvas-' + index;
+
+    const checkboxContainer = document.createElement('div');
+    checkboxContainer.className = 'checkbox-container';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'excluir-' + index;
+    checkboxContainer.appendChild(checkbox);
+    const label = document.createElement('label');
+    label.htmlFor = 'excluir-' + index;
+    label.innerText = 'Excluir possibilidades que já cairam';
+    checkboxContainer.appendChild(label);
+
+    const botao = document.createElement('button');
+    botao.innerText = 'Girar';
+    botao.onclick = () => girarRoleta(index);
+
+    const resultado = document.createElement('div');
+    resultado.id = 'resultado-' + index;
+    resultado.className = 'result';
+
+    const seta = document.createElement('div');
+    seta.className = 'seta-indicadora';
+    seta.id = 'seta-' + index;
+
+    container.appendChild(titulo);
+    container.appendChild(textarea);
+    container.appendChild(canvas);
+    container.appendChild(seta);
+    container.appendChild(checkboxContainer);
+    container.appendChild(botao);
+    container.appendChild(resultado);
+
+    roletasDiv.appendChild(container);
+
+    angulos[index] = 0;
+    rodando[index] = false;
+
+    desenharRoleta(index, item.opcoes, 0);
+  }
+
+  // Ajusta tamanho da fonte de acordo com número de opções
+  function tamanhoFonte(qtd) {
+    if (qtd <= 10) return 20;
+    if (qtd <= 20) return 16;
+    if (qtd <= 40) return 12;
+    if (qtd <= 80) return 10;
+    return 8;
+  }
+
+  function desenharRoleta(idx, opcoes, anguloInicial) {
+    const canvas = document.getElementById('canvas-' + idx);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const raio = Math.min(cx, cy) - 10;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(anguloInicial);
+
+    const n = opcoes.length;
+    const angulo = (2 * Math.PI) / n;
+    const fontSize = tamanhoFonte(n);
+    ctx.font = `bold ${fontSize}px Arial`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+
+    for (let i = 0; i < n; i++) {
+      // Cor carmesim em tons alternados
+      ctx.fillStyle = i % 2 === 0 ? '#cc4444' : '#992222';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, raio, i * angulo, (i + 1) * angulo);
+      ctx.closePath();
+      ctx.fill();
+
+      // Texto no meio da fatia
+      ctx.fillStyle = '#f3d1c1';
+      ctx.save();
+      ctx.rotate(i * angulo + angulo / 2);
+      ctx.fillText(opcoes[i], raio - 10, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  const angulos = [];
+  const rodando = [];
+
+  function calcularEscolha(idx, opcoesAtuais) {
+    const total = opcoesAtuais.length;
+    // Calcula índice baseado no ângulo atual
+    // A roleta para com angulo angulos[idx]
+    let anguloAtual = angulos[idx] % (2 * Math.PI);
+    if (anguloAtual < 0) anguloAtual += 2 * Math.PI;
+    const anguloPorOpcao = 2 * Math.PI / total;
+    // Invertido porque rotação é no sentido horário
+    let indice = Math.floor(((2 * Math.PI) - anguloAtual) / anguloPorOpcao) % total;
+    return opcoesAtuais[indice];
+  }
+
+  function girarRoleta(idx) {
+    if (rodando[idx]) return;
+
+    const excluir = document.getElementById('excluir-' + idx).checked;
+    let opcoesAtuais = dados[idx].opcoes;
+
+    if (excluir) {
+      opcoesAtuais = opcoesAtuais.filter(o => !opcoesUsadas[idx].has(o));
+    }
+
+    if (opcoesAtuais.length < 2) {
+      alert('Faltam ao menos 2 opções para girar nessa roleta. Recarregue a página para resetar.');
+      return;
+    }
+
+    let velocidade = Math.random() * 0.3 + 0.25;
+    let desaceleracao = 0.005;
+    rodando[idx] = true;
+    document.getElementById('resultado-' + idx).innerText = '';
+
+    const animar = () => {
+      if (velocidade <= 0) {
+        rodando[idx] = false;
+        const escolha = calcularEscolha(idx, opcoesAtuais);
+        document.getElementById('resultado-' + idx).innerText = `🎯 ${escolha}`;
+
+        // Posiciona a seta pra apontar a opção selecionada:
+        const total = opcoesAtuais.length;
+        const anguloPorOpcao = 360 / total;
+        const escolhaIndex = opcoesAtuais.indexOf(escolha);
+
+        // Calcular rotação da seta (triângulo) para apontar para a fatia escolhida
+        // Queremos que a seta fique apontando para a fatia selecionada na borda direita (0°)
+        // Cada fatia tem anguloPorOpcao graus, a seta tem que rotacionar para alinhar com o centro da fatia
+
+        // Como as fatias giram, a seta fixa está na borda direita (0°), então rotacionamos a seta para compensar a rotação da fatia
+        // A fatia escolhida tem centro em: (escolhaIndex + 0.5) * anguloPorOpcao
+        let rotacaoSeta = (escolhaIndex + 0.5) * anguloPorOpcao - 90; // -90 para alinhar na vertical
+
+        const seta = document.getElementById('seta-' + idx);
+        seta.style.transform = `translateY(-50%)`;
+
+        if (excluir) {
+          opcoesUsadas[idx].add(escolha);
+        }
+        return;
+      }
+
+      angulos[idx] += velocidade;
+      velocidade -= desaceleracao;
+      desenharRoleta(idx, opcoesAtuais, angulos[idx]);
+      requestAnimationFrame(animar);
+    };
+
+    animar();
+  }
+
+  // Inicializa roletas
+  dados.forEach((item, index) => criarRoleta(item, index));
+</script>
+</body>
+</html>
