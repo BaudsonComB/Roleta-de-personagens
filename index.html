@@ -5,87 +5,131 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Roletas de Personagem</title>
 <style>
+  /* Reset básico */
+  * {
+    box-sizing: border-box;
+  }
+  
   body {
-    background: #330000;
-    color: #f3d1c1;
+    margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 20px;
+    background-color: #2b2b2b; /* fundo cinza escuro */
+    color: #f3d1c1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  header {
+    background-color: #a60020; /* carmesim forte */
+    padding: 20px 30px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 24px;
+    color: #fff3f0;
+    box-shadow: 0 2px 6px rgba(166,0,32,.8);
+  }
+  
+  main {
+    flex: 1;
+    padding: 20px 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
   }
 
   .roleta-container {
-    background: #660000;
-    border: 2px solid #cc3333;
+    background: #441212; /* vermelho escuro bem forte */
+    border: 3px solid #a60020;
     border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 30px;
+    padding: 15px 20px 25px;
     width: 320px;
-    position: relative; /* pra seta absoluta */
-    box-shadow: 0 0 15px #cc4444;
+    box-shadow: 0 0 18px #a60020aa;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   h2 {
-    margin: 0 0 8px 0;
+    margin: 0 0 12px;
     font-weight: 700;
-    color: #ffa07a;
+    color: #ff9e8c;
+    user-select: none;
   }
 
   textarea {
     width: 100%;
-    height: 60px;
+    height: 70px;
     resize: vertical;
-    background: #440000;
-    border: 1px solid #cc4444;
-    color: #f3d1c1;
-    padding: 8px;
-    border-radius: 6px;
+    background: #5e1919;
+    border: 1px solid #a60020;
+    color: #ffe6d1;
+    padding: 10px;
+    border-radius: 8px;
     font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-bottom: 15px;
+    transition: border-color 0.3s;
+  }
+  textarea:focus {
+    border-color: #ff5c5c;
+    outline: none;
   }
 
   canvas {
-    display: block;
-    margin: 15px auto;
-    background: #440000;
     border-radius: 50%;
-    border: 3px solid #cc3333;
-    box-shadow: inset 0 0 15px #cc4444;
+    border: 3px solid #a60020;
+    box-shadow: inset 0 0 16px #ff6f6f80;
+    background-color: #5e1919;
+    display: block;
+    margin-bottom: 12px;
   }
 
   .checkbox-container {
+    width: 100%;
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     user-select: none;
   }
 
   .checkbox-container input[type="checkbox"] {
-    margin-right: 10px;
+    margin-right: 8px;
     width: 18px;
     height: 18px;
     cursor: pointer;
+    filter: drop-shadow(0 0 1px black);
   }
 
   button {
-    background-color: #cc3333;
+    background-color: #a60020;
     border: none;
-    padding: 10px 20px;
+    padding: 11px 25px;
     color: #fff3f0;
     font-weight: 700;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.25s;
-    box-shadow: 0 0 10px #cc5555;
+    font-size: 16px;
+    transition: background-color 0.25s ease;
+    user-select: none;
   }
   button:hover {
-    background-color: #ff6666;
+    background-color: #ff4a4a;
+  }
+  button:active {
+    transform: scale(0.96);
   }
 
   .result {
-    margin-top: 12px;
+    margin-top: 15px;
     font-weight: 700;
     font-size: 18px;
-    color: #ffbb99;
+    color: #ffbbb1;
     min-height: 24px;
     text-align: center;
+    user-select: text;
   }
 
   /* Seta preta estilizada na borda direita da roleta */
@@ -93,25 +137,47 @@
     position: absolute;
     width: 0;
     height: 0;
-    border-top: 20px solid transparent;
-    border-bottom: 20px solid transparent;
-    border-right: 30px solid black; /* ponta preta */
-    filter: drop-shadow(2px 0 1px white); /* contorno branco tipo sombra */
+    border-top: 22px solid transparent;
+    border-bottom: 22px solid transparent;
+    border-right: 34px solid black;
+    filter: drop-shadow(2px 0 2px white);
     top: 50%;
-    right: -1px; /* um pouco pra fora da borda direita */
+    right: -1px;
     transform: translateY(-50%);
     pointer-events: none;
     z-index: 10;
     transition: transform 0.5s ease-out;
   }
+
+  /* Responsividade */
+  @media (max-width: 700px) {
+    main {
+      justify-content: center;
+      padding: 15px 10px;
+    }
+    .roleta-container {
+      width: 100%;
+      max-width: 360px;
+      margin-bottom: 25px;
+      padding: 15px 15px 25px;
+    }
+    .seta-indicadora {
+      right: -30px;
+      border-top: 18px solid transparent;
+      border-bottom: 18px solid transparent;
+      border-right: 28px solid black;
+    }
+  }
 </style>
 </head>
 <body>
 
-<div id="roletas"></div>
+<header>Roletas de Personagem</header>
+
+<main id="roletas"></main>
 
 <script>
-  // Dados iniciais com opções para cada roleta
+  // Dados iniciais para as roletas
   const dados = [
     {
       titulo: 'Roleta de lado',
@@ -242,9 +308,9 @@
         'Kira Kira no Mi: Modelo Cristal',
         'Suke Suke no Mi: Modelo Invisibilidade',
         'Awa Awa no Mi: Modelo Bolha Gigante',
-        'Bomu Bomu no Mi: Modelo Bomba Poderosa',
+        'Bomu Bomu no Mi: Modelo Explosão',
         'Kumo Kumo no Mi: Modelo Aranha Gigante',
-        'Neko Neko no Mi: Modelo Leopardo Negro',
+        'Neko Neko no Mi: Modelo Gato Selvagem',
         'Hito Hito no Mi: Modelo Humanoide',
         'Hebi Hebi no Mi: Modelo Cobra Real',
         'Ryu Ryu no Mi: Modelo Dragão Vermelho',
@@ -344,204 +410,200 @@
         'Anão',
         'Ciborgue',
         'Semi-ciborgue',
-        'Meio-lunariano',
-        'Robô',
-        'Braços longos',
-        'Pernas longas'
+        'Ciborgue avançado',
+        'Metamorfose',
+        'Zoan',
+        'Tritão Zoan',
+        'Dragão',
+        'Metamórfico',
+        'Fada',
+        'Demônio',
+        'Outro'
       ]
     }
   ];
 
-  // Estado das opções já usadas para exclusão
   const opcoesUsadas = dados.map(() => new Set());
 
-  const roletasDiv = document.getElementById('roletas');
-
+  // Cria roleta, textarea, checkbox, botão e resultado
   function criarRoleta(item, index) {
-    const container = document.createElement('div');
+    const container = document.createElement('section');
     container.className = 'roleta-container';
-    container.style.position = 'relative';
 
+    // Título
     const titulo = document.createElement('h2');
     titulo.textContent = item.titulo;
+    container.appendChild(titulo);
 
+    // Textarea para editar opções
     const textarea = document.createElement('textarea');
     textarea.value = item.opcoes.join('\n');
-    textarea.oninput = () => {
-      item.opcoes = textarea.value.split('\n').map(x => x.trim()).filter(x => x.length > 0);
-      opcoesUsadas[index] = new Set(); // reseta exclusão quando muda lista
-      angulos[index] = 0;
-      rodando[index] = false;
-      desenharRoleta(index, item.opcoes, angulos[index]);
-      document.getElementById('resultado-' + index).innerText = '';
-    };
+    textarea.rows = 4;
+    textarea.spellcheck = false;
+    textarea.addEventListener('input', () => {
+      item.opcoes = textarea.value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      opcoesUsadas[index].clear();
+      desenharRoleta(index, item.opcoes, 0);
+      document.getElementById('resultado-' + index).textContent = '';
+    });
+    container.appendChild(textarea);
 
+    // Canvas da roleta
     const canvas = document.createElement('canvas');
-    canvas.width = 300;
-    canvas.height = 300;
+    canvas.width = 280;
+    canvas.height = 280;
     canvas.id = 'canvas-' + index;
+    container.appendChild(canvas);
 
-    const checkboxContainer = document.createElement('div');
-    checkboxContainer.className = 'checkbox-container';
+    // Seta indicadora preta fixa na borda direita
+    const seta = document.createElement('div');
+    seta.className = 'seta-indicadora';
+    container.appendChild(seta);
+
+    // Checkbox para excluir opções já sorteadas
+    const checkboxDiv = document.createElement('label');
+    checkboxDiv.className = 'checkbox-container';
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.id = 'excluir-' + index;
-    checkboxContainer.appendChild(checkbox);
-    const label = document.createElement('label');
-    label.htmlFor = 'excluir-' + index;
-    label.innerText = 'Excluir possibilidades que já cairam';
-    checkboxContainer.appendChild(label);
+    checkboxDiv.appendChild(checkbox);
+    checkboxDiv.appendChild(document.createTextNode('Excluir opções já sorteadas'));
+    container.appendChild(checkboxDiv);
 
-    const botao = document.createElement('button');
-    botao.innerText = 'Girar';
-    botao.onclick = () => girarRoleta(index);
+    // Botão girar
+    const btn = document.createElement('button');
+    btn.textContent = 'Girar';
+    btn.onclick = () => girarRoleta(index);
+    container.appendChild(btn);
 
+    // Resultado do sorteio
     const resultado = document.createElement('div');
-    resultado.id = 'resultado-' + index;
     resultado.className = 'result';
-
-    const seta = document.createElement('div');
-    seta.className = 'seta-indicadora';
-    seta.id = 'seta-' + index;
-
-    container.appendChild(titulo);
-    container.appendChild(textarea);
-    container.appendChild(canvas);
-    container.appendChild(seta);
-    container.appendChild(checkboxContainer);
-    container.appendChild(botao);
+    resultado.id = 'resultado-' + index;
     container.appendChild(resultado);
 
-    roletasDiv.appendChild(container);
+    document.getElementById('roletas').appendChild(container);
 
-    angulos[index] = 0;
-    rodando[index] = false;
-
+    // Desenha roleta inicialmente
     desenharRoleta(index, item.opcoes, 0);
   }
 
-  // Ajusta tamanho da fonte de acordo com número de opções
-  function tamanhoFonte(qtd) {
-    if (qtd <= 10) return 20;
-    if (qtd <= 20) return 16;
-    if (qtd <= 40) return 12;
-    if (qtd <= 80) return 10;
-    return 8;
-  }
-
-  function desenharRoleta(idx, opcoes, anguloInicial) {
-    const canvas = document.getElementById('canvas-' + idx);
+  // Função para desenhar a roleta no canvas
+  function desenharRoleta(index, opcoes, angulo) {
+    const canvas = document.getElementById('canvas-' + index);
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
-    const raio = Math.min(cx, cy) - 10;
+    const raio = Math.min(cx, cy) - 25;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(anguloInicial);
 
     const n = opcoes.length;
-    const angulo = (2 * Math.PI) / n;
-    const fontSize = tamanhoFonte(n);
-    ctx.font = `bold ${fontSize}px Arial`;
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
+    if (n === 0) return;
+
+    const anguloPorOpcao = (2 * Math.PI) / n;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angulo);
+    ctx.translate(-cx, -cy);
 
     for (let i = 0; i < n; i++) {
-      // Cor carmesim em tons alternados
-      ctx.fillStyle = i % 2 === 0 ? '#cc4444' : '#992222';
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.arc(0, 0, raio, i * angulo, (i + 1) * angulo);
-      ctx.closePath();
+      ctx.moveTo(cx, cy);
+      ctx.fillStyle = i % 2 === 0 ? '#cc3333' : '#991111';
+      ctx.strokeStyle = '#550000';
+      ctx.lineWidth = 2;
+      ctx.arc(cx, cy, raio, i * anguloPorOpcao, (i + 1) * anguloPorOpcao);
+      ctx.lineTo(cx, cy);
       ctx.fill();
+      ctx.stroke();
 
       // Texto no meio da fatia
-      ctx.fillStyle = '#f3d1c1';
       ctx.save();
-      ctx.rotate(i * angulo + angulo / 2);
-      ctx.fillText(opcoes[i], raio - 10, 0);
+      const meioAngulo = (i + 0.5) * anguloPorOpcao;
+      ctx.translate(cx, cy);
+      ctx.rotate(meioAngulo);
+      ctx.fillStyle = '#fff3f0';
+      ctx.font = '13px Segoe UI';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      let texto = opcoes[i];
+      if (texto.length > 22) texto = texto.slice(0, 19) + '...';
+      ctx.fillText(texto, raio - 10, 0);
       ctx.restore();
     }
+
     ctx.restore();
   }
 
-  const angulos = [];
-  const rodando = [];
+  // Controle de animação e estado
+  const angulos = dados.map(() => 0);
+  const rodando = dados.map(() => false);
 
-  function calcularEscolha(idx, opcoesAtuais) {
-    const total = opcoesAtuais.length;
-    // Calcula índice baseado no ângulo atual
-    // A roleta para com angulo angulos[idx]
-    let anguloAtual = angulos[idx] % (2 * Math.PI);
-    if (anguloAtual < 0) anguloAtual += 2 * Math.PI;
-    const anguloPorOpcao = 2 * Math.PI / total;
-    // Invertido porque rotação é no sentido horário
-    let indice = Math.floor(((2 * Math.PI) - anguloAtual) / anguloPorOpcao) % total;
-    return opcoesAtuais[indice];
-  }
+  function girarRoleta(index) {
+    if (rodando[index]) return;
 
-  function girarRoleta(idx) {
-    if (rodando[idx]) return;
-
-    const excluir = document.getElementById('excluir-' + idx).checked;
-    let opcoesAtuais = dados[idx].opcoes;
-
-    if (excluir) {
-      opcoesAtuais = opcoesAtuais.filter(o => !opcoesUsadas[idx].has(o));
-    }
-
-    if (opcoesAtuais.length < 2) {
-      alert('Faltam ao menos 2 opções para girar nessa roleta. Recarregue a página para resetar.');
+    const opcoes = dados[index].opcoes;
+    if (opcoes.length === 0) {
+      alert('Não há opções para essa roleta.');
       return;
     }
 
-    let velocidade = Math.random() * 0.3 + 0.25;
-    let desaceleracao = 0.005;
-    rodando[idx] = true;
-    document.getElementById('resultado-' + idx).innerText = '';
+    const excluir = document.getElementById('excluir-' + index).checked;
+    let opcoesValidas = opcoes.filter(o => !opcoesUsadas[index].has(o));
+    if (excluir && opcoesValidas.length === 0) {
+      alert('Todas as opções já foram usadas. Desmarque a exclusão ou edite as opções.');
+      return;
+    }
+    if (!excluir) opcoesValidas = opcoes;
 
-    const animar = () => {
-      if (velocidade <= 0) {
-        rodando[idx] = false;
-        const escolha = calcularEscolha(idx, opcoesAtuais);
-        document.getElementById('resultado-' + idx).innerText = `🎯 ${escolha}`;
+    rodando[index] = true;
+    const canvas = document.getElementById('canvas-' + index);
+    const ctx = canvas.getContext('2d');
 
-        // Posiciona a seta pra apontar a opção selecionada:
-        const total = opcoesAtuais.length;
-        const anguloPorOpcao = 360 / total;
-        const escolhaIndex = opcoesAtuais.indexOf(escolha);
+    // Escolhe aleatório válido
+    const escolhido = opcoesValidas[Math.floor(Math.random() * opcoesValidas.length)];
 
-        // Calcular rotação da seta (triângulo) para apontar para a fatia escolhida
-        // Queremos que a seta fique apontando para a fatia selecionada na borda direita (0°)
-        // Cada fatia tem anguloPorOpcao graus, a seta tem que rotacionar para alinhar com o centro da fatia
+    // Índice do escolhido
+    const indice = opcoes.indexOf(escolhido);
+    const n = opcoes.length;
+    const anguloPorOpcao = 2 * Math.PI / n;
 
-        // Como as fatias giram, a seta fixa está na borda direita (0°), então rotacionamos a seta para compensar a rotação da fatia
-        // A fatia escolhida tem centro em: (escolhaIndex + 0.5) * anguloPorOpcao
-        let rotacaoSeta = (escolhaIndex + 0.5) * anguloPorOpcao - 90; // -90 para alinhar na vertical
+    // Calcula ângulo de parada (5 voltas + alinhar fatia na seta)
+    const anguloParada = 2 * Math.PI * 5 + (2 * Math.PI - (indice + 0.5) * anguloPorOpcao);
 
-        const seta = document.getElementById('seta-' + idx);
-        seta.style.transform = `translateY(-50%)`;
+    const duracao = 4000;
+    const inicio = performance.now();
 
+    function animar(t) {
+      const elapsed = t - inicio;
+      if (elapsed >= duracao) {
+        angulos[index] = anguloParada % (2 * Math.PI);
+        desenharRoleta(index, opcoes, angulos[index]);
+        rodando[index] = false;
+        document.getElementById('resultado-' + index).textContent = escolhido;
         if (excluir) {
-          opcoesUsadas[idx].add(escolha);
+          opcoesUsadas[index].add(escolhido);
         }
         return;
       }
-
-      angulos[idx] += velocidade;
-      velocidade -= desaceleracao;
-      desenharRoleta(idx, opcoesAtuais, angulos[idx]);
+      const progresso = elapsed / duracao;
+      const ease = 1 - Math.pow(1 - progresso, 3);
+      angulos[index] = ease * anguloParada;
+      desenharRoleta(index, opcoes, angulos[index]);
       requestAnimationFrame(animar);
-    };
-
-    animar();
+    }
+    requestAnimationFrame(animar);
   }
 
-  // Inicializa roletas
-  dados.forEach((item, index) => criarRoleta(item, index));
+  // Criar as roletas ao carregar
+  dados.forEach((item, i) => criarRoleta(item, i));
 </script>
+
 </body>
 </html>
